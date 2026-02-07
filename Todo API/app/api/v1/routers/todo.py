@@ -1,0 +1,42 @@
+from fastapi import APIRouter, status, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from schemas.todo import TodoResponse, TodoCreate, TodoUpdate
+from crud.crud import create_todo, get_todo ,get_todos, update, delete_todo
+from database import get_db
+
+router = APIRouter(
+    prefix="/todos",
+    tags=["Todos"],
+    responses={404: {"description": "Not found"}}
+)
+
+@router.post("/", response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
+def create_new_todo(todo: TodoCreate, db: Session = Depends(get_db)):
+    return create_todo(db, todo)
+
+@router.get("/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
+def read_todo(todo_id: int, db: Session=Depends(get_db)):
+    return get_todo(db, todo_id)
+
+@router.get("/", response_model=list[TodoResponse], status_code=status.HTTP_200_OK)
+def  read_todos(db: Session=Depends(get_db)):
+    return get_todos(db)
+
+@router.put("/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
+def update_todo(todo_id: int, todo: TodoUpdate, db: Session=Depends(get_db)):
+    updated = update(db, todo_id, todo)
+
+    if not updated:
+            raise HTTPException(status_code=404, detail="Todo not found")
+    
+    return updated
+
+@router.delete("/todos/{todo_id}")
+def deleting_todo(todo_id: int, db: Session = Depends(get_db)):
+    deleted = delete_todo(db, todo_id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Todo not found")
+
+    return {"message": "Todo deleted successfully"}
