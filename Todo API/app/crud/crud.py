@@ -8,8 +8,8 @@ def get_todos(db: Session):
 def get_todo(db: Session, todo_id: int):
     return db.query(Todo).filter(Todo.id == todo_id).first()
 
-def create_todo(db: Session, todo: TodoCreate):
-    new_todo = Todo(**todo.model_dump())
+def create_todo(db: Session, todo: TodoCreate, user_id: int):
+    new_todo = Todo(**todo.model_dump(), user_id=user_id)
     db.add(new_todo)
     db.commit()
     db.refresh(new_todo)

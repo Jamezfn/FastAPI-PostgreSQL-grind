@@ -2,7 +2,8 @@ from fastapi import FastAPI
 
 import uvicorn
 
-from api.v1.routers.todo import router
+from api.v1.routers.todo import router as todo_router
+from api.v1.routers.auth import router as auth_router
 from models.todo import Todo
 
 app = FastAPI(
@@ -11,10 +12,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.include_router(
-    router,
-    prefix="/api/v1"
-)
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(todo_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

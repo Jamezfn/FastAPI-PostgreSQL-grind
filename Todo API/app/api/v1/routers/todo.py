@@ -2,8 +2,10 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from schemas.todo import TodoResponse, TodoCreate, TodoUpdate
+from schemas.user import UserResponse
 from crud.crud import create_todo, get_todo ,get_todos, update, delete_todo
 from database import get_db
+from app.utils.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/todos",
@@ -12,8 +14,8 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
-def create_new_todo(todo: TodoCreate, db: Session = Depends(get_db)):
-    return create_todo(db, todo)
+def create_new_todo(todo: TodoCreate, db: Session = Depends(get_db), current_user: UserResponse = Depends(get_current_user)):
+    return create_todo(db, todo, current_user.id)
 
 @router.get("/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
 def read_todo(todo_id: int, db: Session=Depends(get_db)):
