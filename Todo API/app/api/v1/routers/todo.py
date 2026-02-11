@@ -18,15 +18,15 @@ def create_new_todo(todo: TodoCreate, db: Session = Depends(get_db), current_use
     return create_todo(db, todo, current_user.id)
 
 @router.get("/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
-def read_todo(todo_id: int, db: Session=Depends(get_db)):
+def read_todo(todo_id: int, db: Session=Depends(get_db), current_user: UserResponse = Depends(get_current_user)):
     return get_todo(db, todo_id)
 
 @router.get("/", response_model=list[TodoResponse], status_code=status.HTTP_200_OK)
-def  read_todos(db: Session=Depends(get_db)):
+def  read_todos(db: Session=Depends(get_db), current_user: UserResponse = Depends(get_current_user)):
     return get_todos(db)
 
 @router.put("/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
-def update_todo(todo_id: int, todo: TodoUpdate, db: Session=Depends(get_db)):
+def update_todo(todo_id: int, todo: TodoUpdate, db: Session=Depends(get_db), current_user: UserResponse = Depends(get_current_user)):
     updated = update(db, todo_id, todo)
 
     if not updated:
@@ -35,7 +35,7 @@ def update_todo(todo_id: int, todo: TodoUpdate, db: Session=Depends(get_db)):
     return updated
 
 @router.delete("/todos/{todo_id}")
-def deleting_todo(todo_id: int, db: Session = Depends(get_db)):
+def deleting_todo(todo_id: int, db: Session = Depends(get_db), current_user: UserResponse = Depends(get_current_user)):
     deleted = delete_todo(db, todo_id)
 
     if not deleted:
