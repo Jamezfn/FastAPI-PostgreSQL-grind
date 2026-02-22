@@ -1,6 +1,8 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from typing import TYPE_CHECKING
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 
@@ -10,7 +12,7 @@ if TYPE_CHECKING:
 
 class User(Base):
     __tablename__ = "users"
-    user_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False, index=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)

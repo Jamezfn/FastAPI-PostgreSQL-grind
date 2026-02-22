@@ -2,6 +2,8 @@ from sqlalchemy import String, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
 
 class Comment(Base):
     __tablename__ = "comments"
-    comment_id: Mapped[int] = mapped_column(primary_key=True)
+    comment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.post_id", ondelete="CASCADE"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)

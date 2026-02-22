@@ -2,6 +2,8 @@ from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 from app.db.models.associations import post_categories, post_tags
@@ -14,7 +16,7 @@ if TYPE_CHECKING:
 
 class Post(Base):
     __tablename__ = "posts"
-    post_id: Mapped[int] = mapped_column(primary_key=True)
+    post_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)

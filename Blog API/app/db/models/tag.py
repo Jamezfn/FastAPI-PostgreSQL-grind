@@ -1,6 +1,8 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 from app.db.models.associations import post_tags
@@ -10,7 +12,7 @@ if TYPE_CHECKING:
 
 class Tag(Base):
     __tablename__ = "tags"
-    tag_id: Mapped = mapped_column(primary_key=True)
+    tag_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     posts: Mapped[list["Post"]] = relationship(secondary=post_tags, back_populates="tags")
