@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from uuid import UUID
 
@@ -21,6 +21,8 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     password: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 class UserDeleteResponse(BaseModel):
     message: str
