@@ -2,6 +2,8 @@ from uuid import UUID
 from typing import Union, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import UniqueViolation
 
 from app.db.repository.user.user import UserRepository
 from app.db.schemas.user.user import UserInCreate, UserResponse, UserUpdate, UserDeleteResponse
@@ -37,11 +39,20 @@ class UserService:
         if update_data.email and update_data.email != existing_user.email:
             if self.__userRepository.get_user_by_email(email=update_data.email):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
-        update_dict = update_data.model_dump(exclude_unset=True)
+            
+        try:
+            update_dict = update_data.model_dump(exclude_unset=True)
+            updated_user = self.__userRepository.update_user(id=id, update_data=update_dict)
 
-        updated_user = self.__userRepository.update_user(id=id, update_data=update_dict)
-
-        return UserResponse.model_validate(updated_user)
+            return UserResponse.model_validate(updated_user)
+        except IntegrityError as e:
+            if hasattr(e, 'args') and len(e.args) > 1 and isinstance(e.args[1], dict):
+                error_info = e.args[1]
+                if error_info.get('field') == 'username':
+                    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists.")
+                elif error_info.get('field') == 'email':
+                    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists.")
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Update failed due to duplicate data.")
     
     def delete_user(self, id: Union[str, UUID]) -> dict:
         """Delete user service - with business logic validation"""

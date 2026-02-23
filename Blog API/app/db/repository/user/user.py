@@ -1,5 +1,7 @@
 from uuid import UUID
 from typing import Union, Optional
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import UniqueViolation
 
 from ..base import BaseRepository
 from app.db.models.user import User
@@ -43,15 +45,31 @@ class UserRepository(BaseRepository):
         if not user:
             return None
         
+        original_username = user.username  
 
         for key, value in update_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
         
-        self.session.commit()
-        self.session.refresh(user)
+        try:
+            self.session.commit()
+            self.session.refresh(user)
 
-        return user
+            return user
+        
+        except IntegrityError as e:
+            self.session.rollback()
+
+            if 'username' in update_data:
+                user.username = original_username
+
+            if isinstance(e.orig, UniqueViolation):
+                if 'username' in str(e.orig):
+                    e.args = (*e.args, {"field": "username", "error": "already_exists"})
+                elif 'email' in str(e.orig):
+                    e.args = (*e.args, {"field": "email", "error": "already_exists"})
+            raise
+
     
     def delete_user(self, id: Union[str, UUID]) -> bool:
         """Delete user by id"""
