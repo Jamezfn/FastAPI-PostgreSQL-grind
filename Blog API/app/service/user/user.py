@@ -10,7 +10,7 @@ class UserService:
     def __init__(self, session: Session):
         self.__userRepository = UserRepository(session=session)
 
-    def create_user(self, user_details: UserInCreate):
+    def create_user(self, user_details: UserInCreate) -> UserResponse:
         """User Create service"""
         if self.__userRepository.get_user_by_email(email=user_details.email):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please login")

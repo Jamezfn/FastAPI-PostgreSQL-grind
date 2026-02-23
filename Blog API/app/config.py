@@ -4,7 +4,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     """Configuration class"""
     database_url: str = Field(
-        default="postgresql://user:1234@localhost:5433/postgres",
+        default="postgresql://postgres:1234@localhost:5432/blog_api",
         alias="DATABASE_URL"
     )
 
