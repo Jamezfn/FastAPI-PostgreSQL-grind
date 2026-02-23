@@ -2,7 +2,7 @@ from uuid import UUID
 from fastapi import APIRouter, status, Depends
 from sqlalchemy.orm import Session
 
-from app.db.schemas.user.user import UserResponse, UserInCreate, UserUpdate
+from app.db.schemas.user.user import UserResponse, UserInCreate, UserUpdate, UserDeleteResponse
 from app.core.database import get_db
 from app.service.user.user import UserService
 
@@ -23,3 +23,8 @@ def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)):
 def update_user_by_id(user_id: UUID, user_data: UserUpdate, db: Session = Depends(get_db)):
     """Update user by id"""
     return UserService(session=db).update_user(id=user_id, update_data=user_data)
+
+@router.delete("/delete/{user_id}", response_model=UserDeleteResponse, status_code=status.HTTP_200_OK)
+def delete_user(user_id: UUID, db: Session = Depends(get_db)):
+    """Delete user by id"""
+    return UserService(session=db).delete_user(id=user_id)
