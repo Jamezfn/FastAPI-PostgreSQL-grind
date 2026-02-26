@@ -4,3 +4,4 @@ uvicorn
 pydantic_settings
 pydantic[email]
 psycopg2
+bcrypt
