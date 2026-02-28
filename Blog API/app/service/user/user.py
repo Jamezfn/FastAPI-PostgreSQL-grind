@@ -9,7 +9,7 @@ from app.db.schemas.user.user import UserResponse, UserUpdate, UserDeleteRespons
 class UserService(Base):
     def get_user_by_id(self, id: Union[str, UUID]) -> UserResponse:
         """Retrieve user by id service"""
-        user = self.__userRepository.get_user_by_id(id=id)
+        user = self._userRepository.get_user_by_id(id=id)
         if user:
             return UserResponse.model_validate(user)
         
@@ -17,17 +17,17 @@ class UserService(Base):
     
     def update_user(self, id: Union[str, UUID], update_data: UserUpdate) -> UserResponse:
         """Update user service"""
-        existing_user = self.__userRepository.get_user_by_id(id)
+        existing_user = self._userRepository.get_user_by_id(id)
         if not existing_user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         
         if update_data.email and update_data.email != existing_user.email:
-            if self.__userRepository.get_user_by_email(email=update_data.email):
+            if self._userRepository.get_user_by_email(email=update_data.email):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
             
         try:
             update_dict = update_data.model_dump(exclude_unset=True)
-            updated_user = self.__userRepository.update_user(id=id, update_data=update_dict)
+            updated_user = self._userRepository.update_user(id=id, update_data=update_dict)
 
             return UserResponse.model_validate(updated_user)
         except IntegrityError as e:
@@ -41,11 +41,11 @@ class UserService(Base):
     
     def delete_user(self, id: Union[str, UUID]) -> dict:
         """Delete user service - with business logic validation"""
-        user = self.__userRepository.get_user_by_id(id)
+        user = self._userRepository.get_user_by_id(id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         
-        deleted = self.__userRepository.delete_user(id=id)
+        deleted = self._userRepository.delete_user(id=id)
         if not deleted:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete user")
         
