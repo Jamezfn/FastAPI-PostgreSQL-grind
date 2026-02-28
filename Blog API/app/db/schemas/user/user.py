@@ -27,3 +27,6 @@ class UserResponse(BaseModel):
 class UserDeleteResponse(BaseModel):
     message: str
     user_id: UUID
+
+class UserWithToken(BaseModel):
+    token: str
