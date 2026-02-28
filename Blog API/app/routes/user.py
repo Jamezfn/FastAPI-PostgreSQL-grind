@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 from app.db.schemas.user.user import UserResponse, UserInCreate, UserUpdate, UserDeleteResponse
 from app.core.database import get_db
 from app.service.user.user import UserService
-
+from app.service.user.auth import AuthService
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user_data: UserInCreate, db: Session = Depends(get_db)):
+def sign_up(user_data: UserInCreate, db: Session = Depends(get_db)):
     """Create a new user"""
-    return UserService(session=db).create_user(user_details=user_data)
+    return AuthService(session=db).signup(user_details=user_data)
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
 def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)):
