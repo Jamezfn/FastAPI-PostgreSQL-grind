@@ -7,6 +7,7 @@ from psycopg2.errors import UniqueViolation
 
 from app.db.repository.user.user import UserRepository
 from app.db.schemas.user.user import UserInCreate, UserResponse, UserUpdate, UserDeleteResponse
+from app.core.security.hashing import Hash
 
 class UserService:
     def __init__(self, session: Session):
@@ -16,10 +17,9 @@ class UserService:
         """User Create service"""
         if self.__userRepository.get_user_by_email(email=user_details.email):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please login")
-        
-        user_dict = user_details.model_dump(exclude_none=True)
+        user_details.password = Hash.hash_password(plain_password=user_details.password)
 
-        db_user = self.__userRepository.create_user(user_data=user_dict)
+        db_user = self.__userRepository.create_user(user_data=user_details)
         return UserResponse.model_validate(db_user)
     
     def get_user_by_id(self, id: Union[str, UUID]) -> UserResponse:
