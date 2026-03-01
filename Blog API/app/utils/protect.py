@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated, Union
 
 from app.db.schemas.user.user import UserResponse
-from app.core.security.jwt_manager import JWTManager
+from app.core.security.token_manager import JWTManager
 from app.service.user.user import UserService
 
 AUTH_PREFIX = 'Bearer '

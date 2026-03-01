@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         min_length=32
     )
 
-    jwt_algorithmn: str = Field(
+    jwt_algorithm: str = Field(
         default="HS256",
         alias='JWT_ALGORITHMN',
         description="JWT signing algorithm",

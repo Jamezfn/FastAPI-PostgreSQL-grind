@@ -16,7 +16,7 @@ def sign_up(user_data: UserInCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=UserWithToken, status_code=status.HTTP_200_OK)
 def login(loginDetails: UserLogin, session: Session = Depends(get_db)) -> UserWithToken:
-    return AuthService.login(loginDetails=loginDetails)
+    return AuthService(session=session).login(loginDetails=loginDetails)
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
 def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)):
