@@ -20,7 +20,7 @@ def get_current_user(session: Session = Depends(), authorization: Annotated[Unio
     if not authorization.startswith(AUTH_PREFIX):
         raise auth_exception
     
-    payload = JWTManager.decode_jwt(token=authorization[len(AUTH_PREFIX)])
+    payload = JWTManager.decode_jwt(token=authorization[len(AUTH_PREFIX):])
     if payload and payload["user_id"]:
         user = UserService(session=session).get_user_by_id(payload["user_id"])
         return UserResponse.model_validate(user, strict=True)
