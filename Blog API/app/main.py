@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi.responses import JSONResponse
 
 from app.routes import user
+from app.routes import post
 from app.core.database import Base, engine
 
 from app.db.models.post import Post
@@ -29,3 +30,4 @@ async def service_validation_exception_handler(request: Request, exc: ServiceVal
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
 app.include_router(user.router, prefix="/api/v1")
+app.include_router(post.router, prefix="/api/v1")

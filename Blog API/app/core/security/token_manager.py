@@ -22,7 +22,7 @@ class JWTManager:
     def decode_jwt(self, token: str) -> dict:
         """Verify and decode JWT token"""
         try:
-            decode_token = jwt.decode(token, self.jwt_secret, self.jwt_algorithmn)
+            decode_token = jwt.decode(token, self.jwt_secret, [self.jwt_algorithmn])
             return decode_token if decode_token["expire"] >= time.time() else None
         except:
             print("unable to decode token")
