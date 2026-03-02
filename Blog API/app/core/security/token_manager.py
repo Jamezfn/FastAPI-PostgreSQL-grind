@@ -9,12 +9,24 @@ class JWTManager:
     def __init__(self):
         self.jwt_secret = settings.jwt_secret.get_secret_value()
         self.jwt_algorithmn = settings.jwt_algorithm
+        self.access_exp_minutes = 15
+        self.refresh_exp_days = 7
 
-    def sign_jwt(self, user_id: UUID) -> str:
+    def create_access_token(self, user_id: UUID) -> str:
         """Generate JWT token for authenticated user"""
         payload = {
-            "user_id": str(user_id),
-            "expire": time.time() + 900
+            "sub": str(user_id),
+            "type": "access",
+            "expire": int(time.time() + 900)
+        }
+
+        return jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithmn)
+    
+    def create_refresh_token(self, user_id: UUID) -> str:
+        payload = {
+            "sub": str(user_id),
+            "type": "refresh",
+            "exp": int(time.time() + (60 * 60 * 24 * 7)),
         }
 
         return jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithmn)
@@ -22,8 +34,8 @@ class JWTManager:
     def decode_jwt(self, token: str) -> dict:
         """Verify and decode JWT token"""
         try:
-            decode_token = jwt.decode(token, self.jwt_secret, [self.jwt_algorithmn])
-            return decode_token if decode_token["expire"] >= time.time() else None
-        except:
-            print("unable to decode token")
+            return jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithmn])
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.InvalidTokenError:
             return None

@@ -17,13 +17,14 @@ class AuthService(Base):
     
     def login(self, loginDetails: UserLogin) -> UserWithToken:
         """User login service"""
-        if not self._userRepository.user_exist_by_email(email=loginDetails.email):
+        user = self._userRepository.get_user_by_email(email=loginDetails.email)
+        if not user:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please create an account")
         
-        user = self._userRepository.get_user_by_email(email=loginDetails.email)
         if Hash.verify_password(plain_password=loginDetails.password, hash_password=user.password):
-            token = JWTManager().sign_jwt(user_id=user.user_id)
-            if token:
-                return UserWithToken(token=token)
+            access_token = JWTManager().create_access_token(user_id=user.user_id)
+            refresh_token = JWTManager().create_refresh_token(user_id=user.user_id)
+            if access_token and refresh_token:
+                return UserWithToken(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to process request")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please check your credentials")

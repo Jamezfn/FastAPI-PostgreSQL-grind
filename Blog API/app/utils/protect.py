@@ -15,14 +15,11 @@ def get_current_user(session: Session = Depends(get_db), authorization: Annotate
         detail="Invalid Authentication Credentials"
     )
 
-    if not authorization:
-        raise auth_exception
-    
-    if not authorization.startswith(AUTH_PREFIX):
+    if not authorization or not authorization.startswith(AUTH_PREFIX):
         raise auth_exception
     
     payload = JWTManager().decode_jwt(token=authorization[len(AUTH_PREFIX):])
-    if payload and payload["user_id"]:
-        user = UserService(session=session).get_user_by_id(payload["user_id"])
+    if payload and payload["sub"]:
+        user = UserService(session=session).get_user_by_id(payload["sub"])
         return UserResponse.model_validate(user, strict=True)
     raise auth_exception

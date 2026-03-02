@@ -15,3 +15,6 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 async def create_post(post_data: PostCreate, session: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Create post endpoint"""
     return PostService(session=session).create_post(current_user=current_user, post_data=post_data)
+
+# @router.get("/", )
+# def get_post_by_id(self, post_id: uu)
