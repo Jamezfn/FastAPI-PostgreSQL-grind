@@ -9,7 +9,7 @@ class PostRepository(BaseRepository):
     def create_post(self, post_dict: dict) -> Post:
         """Create a new post"""
         category_ids = post_dict.pop("category_ids", [])
-        tag_ids = post_dict.pop("tag_ids", [])
+        tag_names = post_dict.pop("tags", [])
 
         new_post = Post(**post_dict)
         try:
@@ -20,9 +20,14 @@ class PostRepository(BaseRepository):
                 categories = self.session.query(Category).filter(Category.category_id.in_(category_ids)).all()
                 new_post.categories.extend(categories)
 
-            if tag_ids:
-                tags = self.session.query(Tag).filter(Tag.tag_id.in_(tag_ids)).all()
-                new_post.tags.extend(tags)
+            if tag_names:
+                normalised = list({name.strip().lower() for name in tag_names})
+                existing_tags = self.session.query(Tag).filter(Tag.name.in_(normalised)).all()
+                new_tags = [Tag(name=name) for name in set(normalised) - set(existing_tags)]
+                self.session.add_all(new_tags)
+
+                all_tags = existing_tags + new_tags
+                new_post.tags.extend(all_tags)
 
             self.session.commit()
             self.session.refresh(new_post)

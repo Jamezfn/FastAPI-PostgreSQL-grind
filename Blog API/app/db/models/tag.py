@@ -13,6 +13,6 @@ if TYPE_CHECKING:
 class Tag(Base):
     __tablename__ = "tags"
     tag_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
 
     posts: Mapped[list["Post"]] = relationship(secondary=post_tags, back_populates="tags")

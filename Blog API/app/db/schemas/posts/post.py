@@ -9,7 +9,7 @@ class PostCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200, description="Post title")
     body: str = Field(..., min_length=1, description="Post content")
     category_ids: Optional[List[UUID]] = Field(default=None, max_length=3, description="List of category IDs to associate with the post")
-    tag_ids: Optional[List[UUID]] = Field(default=None, description="List of tag IDs to associate with the post")
+    tags: Optional[List[str]] = Field(default=None, description="List of tag names to associate with the post")
 
     @field_validator('title')
     @classmethod
