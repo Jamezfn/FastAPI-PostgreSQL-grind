@@ -37,6 +37,6 @@ class JWTManager:
         try:
             return jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithmn])
         except jwt.ExpiredSignatureError:
-            raise ServiceValidationError('Invalid token')
+            raise ServiceValidationError('Invalid token', status_code=401)
         except jwt.InvalidTokenError:
-            raise ServiceValidationError('Invalid token')
+            raise ServiceValidationError('Invalid token', status_code=401)

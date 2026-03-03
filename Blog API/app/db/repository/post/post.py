@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
 
 from ..base import BaseRepository
 from app.db.models.post import Post
@@ -22,11 +23,13 @@ class PostRepository(BaseRepository):
 
             if tag_names:
                 normalised = list({name.strip().lower() for name in tag_names})
-                existing_tags = self.session.query(Tag).filter(Tag.name.in_(normalised)).all()
-                new_tags = [Tag(name=name) for name in set(normalised) - set(existing_tags)]
-                self.session.add_all(new_tags)
 
-                all_tags = existing_tags + new_tags
+                stmt = insert(Tag).values(
+                    [{"name": name} for name in normalised]
+                ).on_conflict_do_nothing(index_elements=["name"])
+                self.session.execute(stmt)
+
+                all_tags = self.session.query(Tag).filter(Tag.name.in_(normalised)).all()
                 new_post.tags.extend(all_tags)
 
             self.session.commit()
