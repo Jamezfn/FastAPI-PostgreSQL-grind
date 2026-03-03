@@ -26,6 +26,18 @@ class PostCreate(BaseModel):
         if not v or not v.strip():
             raise ServiceValidationError('Body cannot be empty')
         return v.strip()
+
+class CategoryResponse(BaseModel):
+    category_id: UUID
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class TagResponse(BaseModel):
+    tag_id: UUID
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
     
 class PostResponse(BaseModel):
     """Schema for post response after creation"""
@@ -33,8 +45,8 @@ class PostResponse(BaseModel):
     user_id: UUID
     title: str
     body: str
-    categories: Optional[List[dict]] = None
-    tags: Optional[List[dict]] = None
+    categories: Optional[List[CategoryResponse]] = None
+    tags: Optional[List[TagResponse]] = None
 
     model_config = ConfigDict(
         from_attributes=True

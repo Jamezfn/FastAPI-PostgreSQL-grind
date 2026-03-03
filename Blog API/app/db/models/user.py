@@ -1,4 +1,4 @@
-from sqlalchemy import String, LargeBinary
+from sqlalchemy import String, LargeBinary, Boolean
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from typing import TYPE_CHECKING
 import uuid
