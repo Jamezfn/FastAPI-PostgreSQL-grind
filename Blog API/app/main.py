@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.routes import user
 from app.routes import post
+from app.routes import comments
 from app.core.database import Base, engine
 
 from app.db.models.post import Post
@@ -31,3 +32,4 @@ async def service_validation_exception_handler(request: Request, exc: ServiceVal
 
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(post.router, prefix="/api/v1")
+app.include_router(comments.router, prefix="/api/v1")

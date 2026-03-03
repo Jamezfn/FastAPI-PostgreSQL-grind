@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy import String, Text, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
@@ -14,10 +14,15 @@ if TYPE_CHECKING:
 class Comment(Base):
     __tablename__ = "comments"
     comment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id: Mapped[int] = mapped_column(ForeignKey("posts.post_id", ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False)
+    post_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("posts.post_id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    body: Mapped[uuid.UUID] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc), nullable=False)
 
     author: Mapped["User"] = relationship(back_populates="comments")
     post: Mapped["Post"] = relationship(back_populates="comments")
+
+    __table_args__ = (
+        Index('idx_comments_post_created', 'post_id', created_at.desc()),
+        Index('idx_comments_user_created', 'user_id', created_at.desc())
+    )
