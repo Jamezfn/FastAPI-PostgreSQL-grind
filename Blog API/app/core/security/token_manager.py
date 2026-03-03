@@ -17,7 +17,7 @@ class JWTManager:
         payload = {
             "sub": str(user_id),
             "type": "access",
-            "expire": int(time.time() + 900)
+            "exp": int(time.time() + 900)
         }
 
         return jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithmn)

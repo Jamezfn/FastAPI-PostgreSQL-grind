@@ -19,7 +19,7 @@ def get_current_user(session: Session = Depends(get_db), authorization: Annotate
         raise auth_exception
     
     payload = JWTManager().decode_jwt(token=authorization[len(AUTH_PREFIX):])
-    if payload and payload["sub"]:
+    if payload and payload["sub"] and payload.get("type") == "access":
         user = UserService(session=session).get_user_by_id(payload["sub"])
         return UserResponse.model_validate(user, strict=True)
     raise auth_exception
