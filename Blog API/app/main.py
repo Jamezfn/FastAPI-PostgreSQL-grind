@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, status
 from contextlib import asynccontextmanager
 from fastapi.responses import JSONResponse
 
-from app.routes import user
+from app.routes.user import user, auth
 from app.routes import post
 from app.routes import comments
 from app.core.database import Base, engine
@@ -30,6 +30,7 @@ app.exception_handler(ServiceValidationError)
 async def service_validation_exception_handler(request: Request, exc: ServiceValidationError):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
+app.include_router(auth.router, prefix="/api/v1")
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(post.router, prefix="/api/v1")
 app.include_router(comments.router, prefix="/api/v1")

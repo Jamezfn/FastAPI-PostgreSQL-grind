@@ -4,6 +4,7 @@ from app.service.user.base import Base
 from app.core.security.hashing import Hash
 from app.core.security.token_manager import JWTManager
 from app.db.schemas.user.user import UserInCreate, UserResponse, UserLogin, UserWithToken
+from app.exceptions import ServiceValidationError
 
 class AuthService(Base):
     def signup(self, user_details: UserInCreate) -> UserResponse:
@@ -28,3 +29,26 @@ class AuthService(Base):
                 return UserWithToken(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to process request")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please check your credentials")
+    
+    def refresh_access_token(self, refresh_token: str) -> dict:
+        """Refresh an expired access token using a refresh token"""
+        payload = JWTManager().decode_jwt(token=refresh_token)
+        if payload.get("type") != "refresh":
+            raise ServiceValidationError('Invalid token')
+        
+        user_id = payload.get("sub")
+        if not user_id:
+            raise ServiceValidationError('Invalid token')
+        
+        try:
+            user = self._userRepository.get_user_by_id(id=user_id)
+        except Exception:
+            raise ServiceValidationError('Invalid token')
+        
+        _access_token = JWTManager().create_access_token(user_id=user_id)
+        _refresh_token = JWTManager().create_refresh_token(user_id=user_id)
+        
+        if _access_token and _refresh_token:
+            return UserWithToken(access_token=_access_token, refresh_token=_refresh_token, token_type="bearer")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to process request")
+        

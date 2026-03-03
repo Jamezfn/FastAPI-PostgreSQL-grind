@@ -9,15 +9,6 @@ from app.service.user.auth import AuthService
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def sign_up(user_data: UserInCreate, db: Session = Depends(get_db)):
-    """Create a new user"""
-    return AuthService(session=db).signup(user_details=user_data)
-
-@router.post("/login", response_model=UserWithToken, status_code=status.HTTP_200_OK)
-def login(loginDetails: UserLogin, session: Session = Depends(get_db)) -> UserWithToken:
-    return AuthService(session=session).login(loginDetails=loginDetails)
-
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
 def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)):
     """Get User by id"""

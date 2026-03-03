@@ -3,6 +3,7 @@ import time
 from uuid import UUID
 
 from app.config import settings
+from app.exceptions import ServiceValidationError
 
 class JWTManager:
     """Authentication service for JWT token management"""
@@ -36,6 +37,6 @@ class JWTManager:
         try:
             return jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithmn])
         except jwt.ExpiredSignatureError:
-            return None
+            raise ServiceValidationError('Invalid token')
         except jwt.InvalidTokenError:
-            return None
+            raise ServiceValidationError('Invalid token')

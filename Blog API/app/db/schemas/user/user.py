@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from typing import Optional
 from uuid import UUID
 
@@ -32,3 +32,6 @@ class UserWithToken(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
+
+class TokenRefresh(BaseModel):
+    refresh_token: str = Field(..., description="Refresh token", min_length=1)
