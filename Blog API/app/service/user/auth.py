@@ -32,18 +32,23 @@ class AuthService(Base):
     
     def refresh_access_token(self, refresh_token: str) -> dict:
         """Refresh an expired access token using a refresh token"""
+        auth_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Authentication Credentials"
+        )
+        
         payload = JWTManager().decode_jwt(token=refresh_token)
         if payload.get("type") != "refresh":
-            raise ServiceValidationError('Invalid token')
+            raise auth_exception
         
         user_id = payload.get("sub")
         if not user_id:
-            raise ServiceValidationError('Invalid token')
+            raise auth_exception
         
         try:
             user = self._userRepository.get_user_by_id(id=user_id)
         except Exception:
-            raise ServiceValidationError('Invalid token')
+            raise auth_exception
         
         _access_token = JWTManager().create_access_token(user_id=user_id)
         _refresh_token = JWTManager().create_refresh_token(user_id=user_id)
