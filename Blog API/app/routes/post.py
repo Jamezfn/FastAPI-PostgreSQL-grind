@@ -1,10 +1,11 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Query
 from sqlalchemy.orm import Session
+from uuid import UUID
+from datetime import datetime
+from typing import List
 
-from app.db.schemas.user.user import UserResponse, UserInCreate
 from app.core.database import get_db
-from app.service.user.user import UserService
-from app.db.schemas.posts.post import PostCreate, PostResponse
+from app.db.schemas.posts.post import PostCreate, PostResponse, CursorPostResponse
 from app.utils.protect import get_current_user
 from app.db.models.user import User
 from app.service.posts.posts import PostService
@@ -16,5 +17,7 @@ async def create_post(post_data: PostCreate, session: Session = Depends(get_db),
     """Create post endpoint"""
     return PostService(session=session).create_post(current_user=current_user, post_data=post_data)
 
-# @router.get("/", )
-# def get_post_by_id(self, post_id: uu)
+@router.get("/posts", response_model=CursorPostResponse, status_code=status.HTTP_200_OK)
+def get_posts_by_category(category_id: UUID, cursor: datetime | None = None, limit: int = Query(20, le=100), session: Session = Depends(get_db)):
+    """Get post by category endpoint"""
+    return PostService(session=session).get_posts_by_category(category_id=category_id,cursor=cursor, limit=limit)

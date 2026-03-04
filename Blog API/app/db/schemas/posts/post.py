@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from uuid import UUID
 from typing import Optional, List
+from datetime import datetime
 
 from app.exceptions import ServiceValidationError
 
@@ -47,6 +48,14 @@ class PostResponse(BaseModel):
     body: str
     categories: Optional[List[CategoryResponse]] = None
     tags: Optional[List[TagResponse]] = None
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+class CursorPostResponse(BaseModel):
+    data: List[PostResponse]
+    next_cursor: Optional[datetime]
 
     model_config = ConfigDict(
         from_attributes=True
