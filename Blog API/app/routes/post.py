@@ -35,3 +35,7 @@ def get_posts_by_tag(tag_name: str, cursor: datetime|None=None, limit: int=Query
 def update_post(post_id: UUID, post_data: PostUpdateRequest, session: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> PostResponse:
     """Update post"""
     return PostService(session=session).update_post(post_id=post_id, update_data=post_data, current_user=current_user)
+
+@router.delete("/post/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(post_id: UUID, session: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return PostService(session=session).delete_post(post_id=post_id, current_user=current_user)

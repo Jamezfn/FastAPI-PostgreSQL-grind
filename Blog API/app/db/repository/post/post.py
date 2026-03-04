@@ -54,6 +54,10 @@ class PostRepository(BaseRepository):
             self.session.rollback()
             raise
 
+    def get_post_by_id(self, post_id: UUID) -> Post:
+        """Get post by id"""
+        return self.session.query(Post).filter(Post.post_id==post_id).first()
+
     def get_all_posts(self, cursor: Optional[datetime] = None, limit: int = 10) -> List[Post]:
         """Retrieve all post with pagination"""
         query = self.session.query(Post)
@@ -78,7 +82,7 @@ class PostRepository(BaseRepository):
     
     def update_post(self, post_id: str, update_data: Dict[str, Any]) -> Optional[Post]:
         """Update post"""
-        post = self.session.query(Post).filter(Post.post_id==post_id).first()
+        post = self.get_post_by_id(post_id=post_id)
         if not post:
             return None
         category_ids = update_data.pop("categories_ids", None)
@@ -103,7 +107,9 @@ class PostRepository(BaseRepository):
         except IntegrityError:
             self.session.rollback()
             raise
-
-    def get_post_by_id(self, post_id: UUID) -> Post:
-        """Get post by id"""
-        return self.session.query(Post).filter(Post.post_id==post_id).first()
+    
+    def delete_post(self, post_id: str) -> bool:
+        post = self.get_post_by_id(post_id=post_id)
+        self.session.delete(post)
+        self.session.commit()
+        return True

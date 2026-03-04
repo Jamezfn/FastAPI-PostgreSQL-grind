@@ -62,3 +62,18 @@ class PostService:
         dict_data = update_data.model_dump()
         updated_post = self._post_repository.update_post(post_id=post_id, update_data=dict_data)
         return PostResponse.model_validate(updated_post)
+    
+    def delete_post(self, current_user: User, post_id: UUID):
+        """Delete post service"""
+        post = self._post_repository.get_post_by_id(post_id=post_id)
+        if not post:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        
+        if post.user_id != current_user.user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete this post"
+        )
+
+        delete = self._post_repository.delete_post(post_id=post_id)
+        if not delete:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="delete failed")
+        return
