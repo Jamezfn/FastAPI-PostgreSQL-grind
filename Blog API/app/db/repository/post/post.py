@@ -58,3 +58,11 @@ class PostRepository(BaseRepository):
         if cursor:
             query = query.filter(Post.created_at < cursor)
         return query.filter(Post.user_id==user_id).order_by(desc(Post.created_at)).limit(limit=limit).all()
+    
+    def get_posts_by_tag(self, tag_name: str, cursor: Optional[datetime], limit: int = 10) -> List[Post]:
+        """Retrieve posts by tag"""
+        query = self.session.query(Post)
+        if cursor:
+            query = query.filter(Post.created_at < cursor)
+
+        return query.join(Post.tags).filter(Tag.name==tag_name.lower().strip()).limit(limit=limit).all()

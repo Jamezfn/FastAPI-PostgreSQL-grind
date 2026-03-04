@@ -26,3 +26,8 @@ def get_posts_by_category(category_id: UUID|None=None, cursor: datetime|None=Non
 def get_posts_by_author(user_id: UUID|None=None, cursor: datetime|None=None, limit: int=Query(default=20, gt=0), session: Session = Depends(get_db)):
     """Get post by user"""
     return PostService(session=session).get_posts_by_author(user_id=user_id, cursor=cursor, limit=limit)
+
+@router.get("/tags/posts", response_model=CursorPostResponse, status_code=status.HTTP_200_OK)
+def get_posts_by_tag(tag_name: str, cursor: datetime|None=None, limit: int=Query(default=20, gt=0), session: Session = Depends(get_db)):
+    """Get post by tag endpoint"""
+    return PostService(session=session).get_post_by_tag(tag_name=tag_name, cursor=cursor, limit=limit)

@@ -47,3 +47,8 @@ class PostService:
             return CursorPostResponse(data=self._post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)
 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    def get_post_by_tag(self, tag_name: str, cursor: Optional[datetime], limit: int = 10) -> CursorPostResponse:
+        """Retreive  posts by tag"""
+        posts = self._post_repository.get_posts_by_tag(cursor=cursor, tag_name=tag_name, limit=limit)
+        return CursorPostResponse(data=self._post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)
