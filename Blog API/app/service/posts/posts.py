@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 
 from app.db.models.user import User
 from app.db.repository.post.post import PostRepository
+from app.db.repository.user.user import UserRepository
 from app.db.repository.post.category import CatRepo
 from app.db.schemas.posts.post import PostCreate, PostResponse, CursorPostResponse
 
@@ -14,6 +15,8 @@ class PostService:
     def __init__(self, session: Session):
         self._post_repository = PostRepository(session=session)
         self._cat_repository = CatRepo(session=session)
+        self._user = UserRepository(session=session)
+        self._post_list_adapter = TypeAdapter(List[PostResponse])
 
     def create_post(self, current_user: User, post_data: PostCreate) -> PostResponse:
         """Create post service"""
@@ -24,10 +27,8 @@ class PostService:
 
         return PostResponse.model_validate(new_post)
     
-    def get_posts_by_category(self, category_id: Optional[UUID], cursor: Optional[datetime], limit: int) -> CursorPostResponse:
+    def get_posts_by_category(self, category_id: Optional[UUID], user_id: Optional[UUID], cursor: Optional[datetime], limit: int) -> CursorPostResponse:
         """Get post service"""
-        post_list_adapter = TypeAdapter(List[PostResponse])
-        
         if not category_id:
             posts = self._post_repository.get_all_posts(cursor=cursor, limit=limit)
         else:
@@ -36,4 +37,13 @@ class PostService:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
             posts = self._cat_repository.get_posts_by_category(category_id=category_id, cursor=cursor, limit=limit)
         
-        return CursorPostResponse(data=post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)
+        return CursorPostResponse(data=self._post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)
+    
+    def get_posts_by_author(self, user_id: UUID, cursor: datetime|None, limit: int) -> CursorPostResponse:
+        """Get posts by user"""
+        if self._user.get_user_by_id(id=user_id):
+            posts = self._post_repository.get_posts_by_author(cursor=cursor, user_id=user_id, limit=limit)
+
+            return CursorPostResponse(data=self._post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)
+
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

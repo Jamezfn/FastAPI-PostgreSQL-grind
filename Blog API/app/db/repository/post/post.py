@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import insert
 from typing import Optional, List
 from datetime import datetime
 from sqlalchemy import desc
+from uuid import UUID
 
 from ..base import BaseRepository
 from app.db.models.post import Post
@@ -44,9 +45,16 @@ class PostRepository(BaseRepository):
             self.session.rollback()
             raise
 
-    def get_all_posts(self, cursor: Optional[datetime] = None, limit: int = 100) -> List[Post]:
+    def get_all_posts(self, cursor: Optional[datetime] = None, limit: int = 10) -> List[Post]:
         """Retrieve all post with pagination"""
         query = self.session.query(Post)
         if cursor:
-            query = query.filter(Post.created_at < cursor)
+            query = query.filter(Post.created_at<cursor)
         return query.order_by(desc(Post.created_at)).limit(limit=limit).all()
+    
+    def get_posts_by_author(self, cursor: Optional[datetime], user_id: UUID, limit: int = 10) -> List[Post]:
+        """Retrieve post for a particular user"""
+        query = self.session.query(Post)
+        if cursor:
+            query = query.filter(Post.created_at < cursor)
+        return query.filter(Post.user_id==user_id).order_by(desc(Post.created_at)).limit(limit=limit).all()
