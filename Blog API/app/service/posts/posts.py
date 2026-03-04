@@ -24,12 +24,16 @@ class PostService:
 
         return PostResponse.model_validate(new_post)
     
-    def get_posts_by_category(self, category_id: UUID, cursor: Optional[datetime], limit: int) -> CursorPostResponse:
-        """Get post by category service"""
-        category = self._cat_repository.get_category_by_id(category_id=category_id)
-        if not category:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    def get_posts_by_category(self, category_id: Optional[UUID], cursor: Optional[datetime], limit: int) -> CursorPostResponse:
+        """Get post service"""
         post_list_adapter = TypeAdapter(List[PostResponse])
-        posts = self._cat_repository.get_posts_by_category(category_id=category_id, cursor=cursor, limit=limit)
-        post_list_adapter.validate_python(posts)
+        
+        if not category_id:
+            posts = self._post_repository.get_all_posts(cursor=cursor, limit=limit)
+        else:
+            category = self._cat_repository.get_category_by_id(category_id=category_id)
+            if not category:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+            posts = self._cat_repository.get_posts_by_category(category_id=category_id, cursor=cursor, limit=limit)
+        
         return CursorPostResponse(data=post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)

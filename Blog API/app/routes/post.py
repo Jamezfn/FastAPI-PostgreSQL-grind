@@ -17,7 +17,7 @@ async def create_post(post_data: PostCreate, session: Session = Depends(get_db),
     """Create post endpoint"""
     return PostService(session=session).create_post(current_user=current_user, post_data=post_data)
 
-@router.get("/posts", response_model=CursorPostResponse, status_code=status.HTTP_200_OK)
-def get_posts_by_category(category_id: UUID, cursor: datetime | None = None, limit: int = Query(20, le=100), session: Session = Depends(get_db)):
+@router.get("/posts/", response_model=CursorPostResponse, status_code=status.HTTP_200_OK)
+def get_posts_by_category(category_id: UUID|None=None, cursor: datetime|None=None, limit: int=Query(default=20, gt=0), session: Session = Depends(get_db)):
     """Get post by category endpoint"""
     return PostService(session=session).get_posts_by_category(category_id=category_id,cursor=cursor, limit=limit)
