@@ -60,3 +60,9 @@ class CursorPostResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+class PostUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    body: Optional[str] = None
+    categories_ids: Optional[List[UUID]] = None
+    tags: Optional[List[str]] = None

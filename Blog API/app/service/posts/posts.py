@@ -9,7 +9,7 @@ from app.db.models.user import User
 from app.db.repository.post.post import PostRepository
 from app.db.repository.user.user import UserRepository
 from app.db.repository.post.category import CatRepo
-from app.db.schemas.posts.post import PostCreate, PostResponse, CursorPostResponse
+from app.db.schemas.posts.post import PostCreate, PostResponse, CursorPostResponse, PostUpdateRequest
 
 class PostService:
     def __init__(self, session: Session):
@@ -52,3 +52,13 @@ class PostService:
         """Retreive  posts by tag"""
         posts = self._post_repository.get_posts_by_tag(cursor=cursor, tag_name=tag_name, limit=limit)
         return CursorPostResponse(data=self._post_list_adapter.validate_python(posts), next_cursor=posts[-1].created_at if posts else None)
+    
+    def update_post(self, post_id: str, current_user: User, update_data: PostUpdateRequest) -> PostResponse:
+        """Update post service"""
+        post = self._post_repository.get_post_by_id(post_id=post_id)
+        if not post or post.user_id != current_user.user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this post"
+        )
+        dict_data = update_data.model_dump()
+        updated_post = self._post_repository.update_post(post_id=post_id, update_data=dict_data)
+        return PostResponse.model_validate(updated_post)

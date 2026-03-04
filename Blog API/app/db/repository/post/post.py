@@ -1,6 +1,7 @@
+from psycopg2 import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 from datetime import datetime
 from sqlalchemy import desc
 from uuid import UUID
@@ -11,6 +12,21 @@ from app.db.models.category import Category
 from app.db.models.tag import Tag
 
 class PostRepository(BaseRepository):
+    def _upsert_and_get_tags(self, tag_names: List[str]) -> List[Tag]:
+        """
+        Bulk insert tags using PostgreSQL ON CONFLICT DO NOTHING
+        and fetch all matching tags in a single query.
+        """
+        if not tag_names:
+            return []
+        
+        normalised = list({name.strip().lower() for name in tag_names})
+        stmt = insert(Tag).values([{"name": name} for name in normalised])
+        stmt = stmt.on_conflict_do_nothing(index_elements=["name"])
+        self.session.execute(stmt)
+
+        return self.session.query(Tag).filter(Tag.name.in_(normalised)).all()
+
     def create_post(self, post_dict: dict) -> Post:
         """Create a new post"""
         category_ids = post_dict.pop("category_ids", [])
@@ -26,14 +42,7 @@ class PostRepository(BaseRepository):
                 new_post.categories.extend(categories)
 
             if tag_names:
-                normalised = list({name.strip().lower() for name in tag_names})
-
-                stmt = insert(Tag).values(
-                    [{"name": name} for name in normalised]
-                ).on_conflict_do_nothing(index_elements=["name"])
-                self.session.execute(stmt)
-
-                all_tags = self.session.query(Tag).filter(Tag.name.in_(normalised)).all()
+                all_tags = self._upsert_and_get_tags(tag_names)
                 new_post.tags.extend(all_tags)
 
             self.session.commit()
@@ -66,3 +75,35 @@ class PostRepository(BaseRepository):
             query = query.filter(Post.created_at < cursor)
 
         return query.join(Post.tags).filter(Tag.name==tag_name.lower().strip()).limit(limit=limit).all()
+    
+    def update_post(self, post_id: str, update_data: Dict[str, Any]) -> Optional[Post]:
+        """Update post"""
+        post = self.session.query(Post).filter(Post.post_id==post_id).first()
+        if not post:
+            return None
+        category_ids = update_data.pop("categories_ids", None)
+        if category_ids is not None:
+            categories = self.session.query(Category).filter(Category.category_id.in_(category_ids)).all()
+            post.categories = categories
+        
+        tag_names = update_data.pop("tags", None)
+        if tag_names is not None:
+            post.tags = self._upsert_and_get_tags(tag_names)
+
+        for key, value in update_data.items():
+            if key in Post.__table__.columns.keys():
+                setattr(post, key, value)
+
+        try:
+            self.session.commit()
+            self.session.refresh(post)
+
+            return post
+        
+        except IntegrityError:
+            self.session.rollback()
+            raise
+
+    def get_post_by_id(self, post_id: UUID) -> Post:
+        """Get post by id"""
+        return self.session.query(Post).filter(Post.post_id==post_id).first()
